@@ -1,0 +1,4 @@
+*.BAK
+myEnv
+__pycache__
+packages-microsoft-prod.deb
