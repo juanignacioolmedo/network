@@ -58,3 +58,23 @@ def extraer_datasource(texto):
     if match:
         return match.group(1)
     return "No se pudo extraer DATASOURCE"
+
+def actualizar_config(datos_ini, ip_privada):
+    if not comparar_ips(datos_ini['datasource'], ip_privada):
+        try:
+            config_previa = obtener_configuracion_actual(datos_ini['bd_web'])
+            print(f"[DEBUG] IP en la API antes de actualizar: {config_previa}")
+            
+            respuesta = actualizar_datasource_api(datos_ini['bd_web'], ip_privada)
+            nueva_config = obtener_configuracion_actual(datos_ini['bd_web'])
+            print(f"[DEBUG] IP en la API después de actualizar: {nueva_config}")
+            
+            return {
+                "estado": "Actualizado",
+                "respuesta_api": respuesta,
+                "config_anterior": config_previa,
+                "config_nueva": nueva_config
+            }
+        except Exception as e:
+            return {"estado": "Error", "mensaje": str(e)}
+    return {"estado": "Sin cambios", "mensaje": "Las IPs ya coinciden"}

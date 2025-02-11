@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import socket
-from logic import leer_archivo_ini, obtener_ip_privada, comparar_ips, actualizar_datasource_api, obtener_configuracion_actual
+from logic import leer_archivo_ini, obtener_ip_privada, comparar_ips, actualizar_config
 
 class Application(tk.Tk):
     def __init__(self):
@@ -39,7 +39,7 @@ class Application(tk.Tk):
         ttk.Label(frame, text=f"BD Web: {self.datos_ini['bd_web']}").grid(row=5, column=0, sticky="w")
         
         # Botones
-        ttk.Button(frame, text="Actualizar Configuración", command=self.actualizar_config).grid(row=6, column=0, pady=10)
+        ttk.Button(frame, text="Actualizar Configuración", command=self.actualizar_config_gui).grid(row=6, column=0, pady=10)
         
         # Área de estado
         self.status_text = tk.Text(frame, height=8, width=50, state="normal")
@@ -61,54 +61,21 @@ class Application(tk.Tk):
         self.status_text.insert(tk.END, "\n\n")
         self.status_text.config(state="disabled")
         
-    def actualizar_config(self):
+    def actualizar_config_gui(self):
         self.status_text.config(state="normal")
         self.status_text.delete(1.0, tk.END)
         self.status_text.insert(tk.END, "Enviando datos a la API...\n")
         self.status_text.config(state="disabled")
-        self.update_idletasks()  # Forzar actualización de la interfaz
+        self.update_idletasks()
         
-        # Primera comparación (con el INI)
-        if not comparar_ips(self.datos_ini['datasource'], self.ip_privada):
-            try:
-                # Obtener configuración actual desde la API (antes de actualizar)
-                print("[DEBUG] Obteniendo estado previo de la API...")
-                config_previa = obtener_configuracion_actual(self.datos_ini['bd_web'])
-                print(f"[DEBUG] IP en la API (antes de actualizar): {config_previa}")
-                
-                # Actualizar configuración
-                print(f"[DEBUG] Enviando nueva IP a la API: {self.ip_privada}")
-                respuesta = actualizar_datasource_api(self.datos_ini['bd_web'], self.ip_privada)
-                self.status_text.config(state="normal")
-                self.status_text.insert(tk.END, "Datos enviados correctamente.\n")
-                self.status_text.insert(tk.END, f"Respuesta de la API: {respuesta}\n\n")
-                self.status_text.config(state="disabled")
-                self.update_idletasks()  # Forzar actualización de la interfaz
-                
-                # Obtener configuración actualizada desde la API
-                print("[DEBUG] Obteniendo configuración actualizada desde la API...")
-                nueva_config = obtener_configuracion_actual(self.datos_ini['bd_web'])
-                print(f"[DEBUG] IP en la API (después de actualizar): {nueva_config}")
-                
-                self.status_text.config(state="normal")
-                self.status_text.insert(tk.END, "Configuración actualizada:\n")
-                self.status_text.insert(tk.END, f"{nueva_config}\n")
-                self.status_text.config(state="disabled")
-                
-                # Segunda comparación (con la API)
-                print(f"[DEBUG] Comparando IPs: Local={self.ip_privada}, API={nueva_config}")
-                self.mostrar_comparacion_ips(datasource_api=nueva_config)
-                
-            except Exception as e:
-                print(f"[DEBUG] Error: {str(e)}")
-                self.status_text.config(state="normal")
-                self.status_text.insert(tk.END, f"Error: {str(e)}\n")
-                self.status_text.config(state="disabled")
-        else:
-            print("[DEBUG] Las IPs ya coinciden, no se requiere actualización.")
-            self.status_text.config(state="normal")
-            self.status_text.insert(tk.END, "Las IPs ya coinciden, no se requiere actualización.\n")
-            self.status_text.config(state="disabled")
+        resultado = actualizar_config(self.datos_ini, self.ip_privada)
+        
+        self.status_text.config(state="normal")
+        self.status_text.insert(tk.END, f"{resultado['estado']}: {resultado.get('mensaje', '')}\n")
+        if 'config_nueva' in resultado:
+            self.status_text.insert(tk.END, f"Configuración actualizada: {resultado['config_nueva']}\n")
+            self.mostrar_comparacion_ips(datasource_api=resultado['config_nueva'])
+        self.status_text.config(state="disabled")
 
 if __name__ == "__main__":
     app = Application()
