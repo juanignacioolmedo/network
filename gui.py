@@ -7,7 +7,7 @@ class Application(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Network Scanner")
-        self.geometry("600x400")
+        self.geometry("600x400")  # Tamaño más compacto
         
         # Variables de estado
         self.ip_privada = obtener_ip_privada()
@@ -28,22 +28,26 @@ class Application(tk.Tk):
         frame = ttk.Frame(self)
         frame.pack(pady=10, padx=10, fill="both", expand=True)
         
-        # Sección de información
+        # Configurar el grid para que las columnas se expandan
+        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(1, weight=1)
+        
+        # Sección de información local
         ttk.Label(frame, text="INFORMACIÓN LOCAL", font=('Arial', 12, 'bold')).grid(row=0, column=0, sticky="w", pady=5)
         ttk.Label(frame, text=f"IP Actual: {self.ip_privada}").grid(row=1, column=0, sticky="w")
         ttk.Label(frame, text=f"Hostname: {self.hostname}").grid(row=2, column=0, sticky="w")
         
-        # Sección de configuración
-        ttk.Label(frame, text="CONFIGURACIÓN INI", font=('Arial', 12, 'bold')).grid(row=3, column=0, sticky="w", pady=5)
-        ttk.Label(frame, text=f"Datasource: {self.datos_ini['datasource']}").grid(row=4, column=0, sticky="w")
-        ttk.Label(frame, text=f"BD Web: {self.datos_ini['bd_web']}").grid(row=5, column=0, sticky="w")
+        # Sección de configuración INI
+        ttk.Label(frame, text="CONFIGURACIÓN INI", font=('Arial', 12, 'bold')).grid(row=0, column=1, sticky="w", pady=5)
+        ttk.Label(frame, text=f"Datasource: {self.datos_ini['datasource']}").grid(row=1, column=1, sticky="w")
+        ttk.Label(frame, text=f"BD Web: {self.datos_ini['bd_web']}").grid(row=2, column=1, sticky="w")
         
-        # Botones
-        ttk.Button(frame, text="Actualizar Configuración", command=self.actualizar_config_gui).grid(row=6, column=0, pady=10)
+        # Botón de actualización
+        ttk.Button(frame, text="Actualizar Configuración", command=self.actualizar_config_gui).grid(row=3, column=0, columnspan=2, pady=10)
         
         # Área de estado
-        self.status_text = tk.Text(frame, height=8, width=50, state="normal")
-        self.status_text.grid(row=7, column=0, pady=10)
+        self.status_text = tk.Text(frame, height=5, width=60, state="normal")
+        self.status_text.grid(row=4, column=0, columnspan=2, pady=10)
         self.status_text.insert(tk.END, "Esperando acciones...\n")
         self.status_text.config(state="disabled")
         
@@ -57,6 +61,7 @@ class Application(tk.Tk):
         color = "green" if resultado == "COINCIDEN" else "red"
         
         self.status_text.insert(tk.END, "Estado de IPs: ")
+        self.status_text.tag_config(color, foreground=color)
         self.status_text.insert(tk.END, resultado, color)
         self.status_text.insert(tk.END, "\n\n")
         self.status_text.config(state="disabled")
