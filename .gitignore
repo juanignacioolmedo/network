@@ -1,4 +1,8 @@
 *.BAK
 myEnv
-__pycache__
-packages-microsoft-prod.deb
+build/
+dist/
+*.sqlite
+*.spec
+*.pyc
+__pycache__/
