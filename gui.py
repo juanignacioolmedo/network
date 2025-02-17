@@ -1,8 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import socket
-from logic import leer_archivo_ini, obtener_ip_privada, comparar_ips, actualizar_config
-
+from logic import leer_archivo_ini, obtener_ip_privada, comparar_datasource_con_ip_o_hostname, actualizar_config
 class Application(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -57,7 +56,7 @@ class Application(tk.Tk):
         
         # Comparar con la IP de la API si está disponible, de lo contrario usar el INI
         ip_a_comparar = datasource_api if datasource_api else self.datos_ini['datasource']
-        resultado = "COINCIDEN" if comparar_ips(ip_a_comparar, self.ip_privada) else "NO COINCIDEN"
+        resultado = "COINCIDEN" if comparar_datasource_con_ip_o_hostname(ip_a_comparar, self.ip_privada, self.hostname) else "NO COINCIDEN"
         color = "green" if resultado == "COINCIDEN" else "red"
         
         self.status_text.insert(tk.END, "Estado de IPs: ")

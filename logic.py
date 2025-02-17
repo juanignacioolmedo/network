@@ -23,8 +23,16 @@ def obtener_ip_privada():
     except:
         return "127.0.0.1"
 
-def comparar_ips(ip_ini, ip_privada):
-    return ip_ini == ip_privada
+def es_ip_valida(ip):
+    # Expresión regular para validar una dirección IP
+    patron_ip = re.compile(r'^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$')
+    return patron_ip.match(ip) is not None
+
+def comparar_datasource_con_ip_o_hostname(datasource, ip_privada, hostname):
+    if es_ip_valida(datasource):
+        return datasource == ip_privada
+    else:
+        return datasource == hostname
 
 def actualizar_datasource_api(bd_cliente, nuevo_datasource):
     url = "http://serviceairtech.com.ar/service1.asmx/setConfiguracionIni_datasource"
@@ -60,12 +68,14 @@ def extraer_datasource(texto):
     return "No se pudo extraer DATASOURCE"
 
 def actualizar_config(datos_ini, ip_privada):
-    if not comparar_ips(datos_ini['datasource'], ip_privada):
+    hostname = socket.gethostname()
+    if not comparar_datasource_con_ip_o_hostname(datos_ini['datasource'], ip_privada, hostname):
         try:
             config_previa = obtener_configuracion_actual(datos_ini['bd_web'])
             print(f"[DEBUG] IP en la API antes de actualizar: {config_previa}")
             
-            respuesta = actualizar_datasource_api(datos_ini['bd_web'], ip_privada)
+            nuevo_datasource = ip_privada if es_ip_valida(datos_ini['datasource']) else hostname
+            respuesta = actualizar_datasource_api(datos_ini['bd_web'], nuevo_datasource)
             nueva_config = obtener_configuracion_actual(datos_ini['bd_web'])
             print(f"[DEBUG] IP en la API después de actualizar: {nueva_config}")
             
@@ -77,4 +87,4 @@ def actualizar_config(datos_ini, ip_privada):
             }
         except Exception as e:
             return {"estado": "Error", "mensaje": str(e)}
-    return {"estado": "Sin cambios", "mensaje": "Las IPs ya coinciden"}
+    return {"estado": "Sin cambios", "mensaje": "Las IPs o hostnames ya coinciden"}
